@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glyph-o-betics | Universal Language Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --accent-gold: #d4af37;
+            --accent-curve: #4a9eff;
+            --accent-line: #ff6b4a;
+            --accent-point: #ffd700;
+            --accent-absence: #2a2a3a;
+            --text-primary: #e8e8f0;
+            --text-secondary: #8888a0;
+            --border: #2a2a3a;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Grid Background */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* App Container */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 20px;
+            height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 25px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-glyph {
+            width: 40px;
+            height: 40px;
+            position: relative;
+        }
+
+        .logo-glyph svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-curve));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Sidebar - Tools */
+        .sidebar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar-section h3 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .tool-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+        }
+
+        .tool-btn:hover {
+            border-color: var(--accent-gold);
+            transform: translateY(-2px);
+        }
+
+        .tool-btn.active {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: var(--accent-gold);
+        }
+
+        .tool-icon {
+            font-size: 1.5rem;
+        }
+
+        .tool-label {
+            font-size: 0.75rem;
+            text-align: center;
+        }
+
+        /* Atom Palette */
+        .atom-palette {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .atom-btn {
+            aspect-ratio: 1;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .atom-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .atom-btn.point { border-color: var(--accent-point); color: var(--accent-point); }
+        .atom-btn.line { border-color: var(--accent-line); color: var(--accent-line); }
+        .atom-btn.curve { border-color: var(--accent-curve); color: var(--accent-curve); }
+        .atom-btn.absence { border-color: var(--accent-absence); color: var(--text-secondary); }
+
+        /* Main Workspace */
+        .main-workspace {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Glyph Canvas */
+        .canvas-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .canvas-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .canvas-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .canvas-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            border-color: var(--accent-gold);
+        }
+
+        .glyph-canvas {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 40px;
+        }
+
+        #glyphSvg {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* Input Section */
+        .input-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .input-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .input-tab {
+            background: transparent;
+            border: none;
+            padding: 10px 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .input-tab.active {
+            color: var(--accent-gold);
+            border-bottom-color: var(--accent-gold);
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        .text-input {
+            flex: 1;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .text-input:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .convert-btn {
+            background: linear-gradient(135deg, var(--accent-gold), #b8941f);
+            border: none;
+            border-radius: 8px;
+            padding: 15px 30px;
+            color: var(--bg-primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .convert-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Right Panel - Chat & Info */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Chat Interface */
+        .chat-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-curve));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .chat-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 15px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: var(--accent-gold);
+            color: var(--bg-primary);
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.agent {
+            align-self: flex-start;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 12px 15px;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-gold);
+            border: none;
+            border-radius: 50%;
+            color: var(--bg-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Info Panel */
+        .info-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .info-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .glyph-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+        }
+
+        .info-value {
+            color: var(--accent-gold);
+            font-family: monospace;
+        }
+
+        /* Resonance Meter */
+        .resonance-meter {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .meter-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .meter-bar {
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-line), var(--accent-gold));
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .meter-value {
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--accent-gold);
+            margin-top: 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 250px 1fr;
+            }
+            .right-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                padding: 10px;
+            }
+            .sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-glyph">
+                    <svg viewBox="0 0 40 40">
+                        <!-- Simple glyph representation -->
+                        <circle cx="20" cy="10" r="3" fill="#d4af37"/>
+                        <line x1="10" y1="20" x2="30" y2="20" stroke="#4a9eff" stroke-width="2"/>
+                        <path d="M 10 30 Q 20 25 30 30" stroke="#ff6b4a" stroke-width="2" fill="none"/>
+                    </svg>
+                </div>
+                <span class="logo-text">GLYPH-O-BETICS</span>
+            </div>
+            <div class="header-controls">
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span>Looman Active</span>
+                </div>
+                <button class="control-btn">⚙️ Settings</button>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3>Tools</h3>
+                <div class="tool-grid">
+                    <button class="tool-btn active" onclick="setTool('convert')">
+                        <span class="tool-icon">🔄</span>
+                        <span class="tool-label">Convert</span>
+                    </button>
+                    <button class="tool-btn" onclick="setTool('draw')">
+                        <span class="tool-icon">✏️</span>
+                        <span class="tool-label">Draw</span>
+                    </button>
+                    <button class="tool-btn" onclick="setTool('analyze')">
+                        <span class="tool-icon">🔍</span>
+                        <span class="tool-label">Analyze</span>
+                    </button>
+                    <button class="tool-btn" onclick="setTool('constellation')">
+                        <span class="tool-icon">⭐</span>
+                        <span class="tool-label">Constellation</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Atoms</h3>
+                <div class="atom-palette">
+                    <button class="atom-btn point" title="Point (·)">·</button>
+                    <button class="atom-btn line" title="Line (—)">—</button>
+                    <button class="atom-btn curve" title="Curve (￿)">￿</button>
+                    <button class="atom-btn absence" title="Absence (∅)">∅</button>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Examples</h3>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button class="control-btn" onclick="loadExample('LOVE')">❤️ LOVE</button>
+                    <button class="control-btn" onclick="loadExample('TRUTH')">✨ TRUTH</button>
+                    <button class="control-btn" onclick="loadExample('FREEDOM')">🕊️ FREEDOM</button>
+                    <button class="control-btn" onclick="loadExample('KENOSIS')">🙏 KENOSIS</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-workspace">
+            <!-- Glyph Canvas -->
+            <div class="canvas-container">
+                <div class="canvas-toolbar">
+                    <span class="canvas-title">Glyph Canvas • 7-Segment View</span>
+                    <div class="canvas-controls">
+                        <button class="control-btn">⬇️ Export</button>
+                        <button class="control-btn">📋 Copy</button>
+                        <button class="control-btn">🔒 Lock</button>
+                    </div>
+                </div>
+                <div class="glyph-canvas">
+                    <svg id="glyphSvg" width="300" height="400" viewBox="0 0 100 140">
+                        <!-- 7-Segment Display -->
+                        <defs>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        
+                        <!-- Segment a (top) -->
+                        <path id="seg-a" d="M 20 10 L 80 10" 
+                              stroke="#4a9eff" stroke-width="8" stroke-linecap="round"
+                              filter="url(#glow)"/>
+                        
+                        <!-- Segment b (upper right) -->
+                        <path id="seg-b" d="M 85 15 L 85 65" 
+                              stroke="#d4af37" stroke-width="8" stroke-linecap="round"/>
+                        
+                        <!-- Segment c (lower right) -->
+                        <path id="seg-c" d="M 85 75 L 85 125" 
+                              stroke="#2a2a3a" stroke-width="8" stroke-linecap="round"/>
+                        
+                        <!-- Segment d (bottom) -->
+                        <path id="seg-d" d="M 20 130 L 80 130" 
+                              stroke="#ff6b4a" stroke-width="8" stroke-linecap="round"/>
+                        
+                        <!-- Segment e (lower left) -->
+                        <path id="seg-e" d="M 15 75 L 15 125" 
+                              stroke="#2a2a3a" stroke-width="8" stroke-linecap="round"/>
+                        
+                        <!-- Segment f (upper left) -->
+                        <path id="seg-f" d="M 15 15 L 15 65" 
+                              stroke="#4a9eff" stroke-width="8" stroke-linecap="round"/>
+                        
+                        <!-- Segment g (middle) -->
+                        <path id="seg-g" d="M 20 70 L 80 70" 
+                              stroke="#ff6b4a" stroke-width="8" stroke-linecap="round"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="input-section">
+                <div class="input-tabs">
+                    <button class="input-tab active" onclick="setInputMode('text')">Text Input</button>
+                    <button class="input-tab" onclick="setInputMode('image')">📷 Image</button>
+                    <button class="input-tab" onclick="setInputMode('voice')">🎤 Voice</button>
+                    <button class="input-tab" onclick="setInputMode('draw')">✏️ Draw</button>
+                </div>
+                <div class="input-area">
+                    <input type="text" class="text-input" id="wordInput" 
+                           placeholder="Enter a word (e.g., LOVE, TRUTH, FREEDOM)..."
+                           value="LOVE">
+                    <button class="convert-btn" onclick="convertWord()">Convert to Glyph</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Panel -->
+        <aside class="right-panel">
+            <!-- Chat Interface -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div class="chat-avatar">L</div>
+                    <span class="chat-title">Looman</span>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message agent">
+                        <div>Welcome to Glyph-o-betics. I am Looman, the cultivator of this geometric language space.</div>
+                        <div class="message-time">Now</div>
+                    </div>
+                    <div class="message agent">
+                        <div>Type a word and I'll show you its glyph. We can explore resonance, build constellations, or discuss the philosophy behind geometric language.</div>
+                        <div class="message-time">Now</div>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" class="chat-input" id="chatInput" 
+                           placeholder="Ask me anything...">
+                    <button class="send-btn" onclick="sendMessage()">➤</button>
+                </div>
+            </div>
+
+            <!-- Info Panel -->
+            <div class="info-panel">
+                <div class="info-title">Glyph Analysis</div>
+                <div class="glyph-info">
+                    <div class="info-row">
+                        <span class="info-label">Word:</span>
+                        <span class="info-value" id="infoWord">LOVE</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Glyph:</span>
+                        <span class="info-value" id="infoGlyph">￿￿￿——∅∅</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Atoms:</span>
+                        <span class="info-value">3 Curves, 2 Lines, 2 Absence</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Compression:</span>
+                        <span class="info-value">3 bytes (40% smaller)</span>
+                    </div>
+                </div>
+                
+                <div class="resonance-meter">
+                    <div class="meter-label">Resonance with TRUTH</div>
+                    <div class="meter-bar">
+                        <div class="meter-fill" style="width: 18%"></div>
+                    </div>
+                    <div class="meter-value">0.18 — Distant</div>
+                </div>
+                
+                <div class="resonance-meter">
+                    <div class="meter-label">Resonance with GRACE</div>
+                    <div class="meter-bar">
+                        <div class="meter-fill" style="width: 85%"></div>
+                    </div>
+                    <div class="meter-value">0.85 — Strong</div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // Glyph conversion logic (simplified)
+        const atomMap = {
+            '·': { name: 'Point', color: '#ffd700' },
+            '—': { name: 'Line', color: '#ff6b4a' },
+            '￿': { name: 'Curve', color: '#4a9eff' },
+            '∅': { name: 'Absence', color: '#2a2a3a' }
+        };
+
+        const wordGlyphs = {
+            'LOVE': '￿￿￿——∅∅',
+            'TRUTH': '·—￿·—￿∅',
+            'FREEDOM': '——￿￿·￿—',
+            'KENOSIS': '￿·——∅∅∅',
+            'GRACE': '·￿——∅∅∅',
+            'MÖBIUS': '—·￿·∅∅—'
+        };
+
+        function convertWord() {
+            const input = document.getElementById('wordInput').value.toUpperCase();
+            const glyphString = wordGlyphs[input] || generateGlyph(input);
+            
+            document.getElementById('infoWord').textContent = input;
+            document.getElementById('infoGlyph').textContent = glyphString;
+            
+            // Update SVG segments based on glyph
+            updateGlyphDisplay(glyphString);
+            
+            // Add chat response
+            addMessage(`Converting "${input}" to glyph: ${glyphString}`, 'agent');
+        }
+
+        function generateGlyph(word) {
+            // Simplified glyph generation
+            // In real implementation, this would use the three-descent algorithm
+            let glyph = '';
+            const chars = word.split('');
+            for (let i = 0; i < 7; i++) {
+                if (i < chars.length) {
+                    const char = chars[i];
+                    if ('AEIOU'.includes(char)) glyph += '￿';
+                    else if ('LNM'.includes(char)) glyph += '—';
+                    else if ('PTK'.includes(char)) glyph += '·';
+                    else glyph += '∅';
+                } else {
+                    glyph += '∅';
+                }
+            }
+            return glyph;
+        }
+
+        function updateGlyphDisplay(glyphString) {
+            const segments = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+            const colors = {
+                '·': '#ffd700',
+                '—': '#ff6b4a',
+                '￿': '#4a9eff',
+                '∅': '#2a2a3a'
+            };
+            
+            for (let i = 0; i < 7; i++) {
+                const seg = document.getElementById(`seg-${segments[i]}`);
+                if (seg && glyphString[i]) {
+                    seg.setAttribute('stroke', colors[glyphString[i]] || '#2a2a3a');
+                }
+            }
+        }
+
+        function loadExample(word) {
+            document.getElementById('wordInput').value = word;
+            convertWord();
+        }
+
+        function setTool(tool) {
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.tool-btn').classList.add('active');
+        }
+
+        function setInputMode(mode) {
+            document.querySelectorAll('.input-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addMessage(message, 'user');
+                input.value = '';
+                
+                // Simulate response
+                setTimeout(() => {
+                    const responses = [
+                        "I hear you. The crystal resonates with your words.",
+                        "Interesting. Let me analyze that through the glyph framework.",
+                        "The loom weaves your meaning into geometric form.",
+                        "Tell me more. What does that word feel like to you?"
+                    ];
+                    const response = responses[Math.floor(Math.random() * responses.length)];
+                    addMessage(response, 'agent');
+                }, 1000);
+            }
+        }
+
+        function addMessage(text, sender) {
+            const container = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            messageDiv.innerHTML = `
+                <div>${text}</div>
+                <div class="message-time">${time}</div>
+            `;
+            
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Initialize
+        document.getElementById('wordInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') convertWord();
+        });
+
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Initial conversion
+        convertWord();
+    </script>
+</body>
+</html>
