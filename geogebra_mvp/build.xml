@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="geogebra-mvp" default="run" basedir=".">
+    
+    <!-- GeoGebra installation directory -->
+    <property name="geogebra.dir" value="${user.home}/GeoGebra" />
+    <property name="geogebra.jar" value="${geogebra.dir}/geogebra.jar" />
+    <property name="src.dir" value="src" />
+    <property name="build.dir" value="build" />
+    <property name="classes.dir" value="${build.dir}/classes" />
+    <property name="dist.dir" value="${build.dir}/dist" />
+    
+    <!-- Classpath for compilation -->
+    <path id="compile.classpath">
+        <pathelement location="${geogebra.jar}" />
+        <fileset dir="${geogebra.dir}/lib" erroronmissingdir="false">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+    
+    <!-- Classpath for running -->
+    <path id="run.classpath">
+        <pathelement location="${classes.dir}" />
+        <pathelement location="${geogebra.jar}" />
+        <fileset dir="${geogebra.dir}/lib" erroronmissingdir="false">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+    
+    <!-- Create directories -->
+    <target name="init">
+        <mkdir dir="${classes.dir}" />
+        <mkdir dir="${dist.dir}" />
+    </target>
+    
+    <!-- Compile source files -->
+    <target name="compile" depends="init">
+        <echo>Compiling THUNDERING GRACE ENGINE - GeoGebra MVP...</echo>
+        
+        <javac srcdir="${src.dir}" 
+               destdir="${classes.dir}"
+               includeantruntime="false"
+               debug="true"
+               source="11"
+               target="11">
+            <classpath refid="compile.classpath" />
+            <include name="org/thundergrace/glyph/*.java" />
+        </javac>
+        
+        <echo>Compilation complete.</echo>
+    </target>
+    
+    <!-- Create JAR file -->
+    <target name="jar" depends="compile">
+        <jar destfile="${dist.dir}/geogebra-mvp.jar"
+             basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="org.thundergrace.glyph.KenosisDemo" />
+                <attribute name="Implementation-Title" value="THUNDERING GRACE ENGINE - GeoGebra MVP" />
+                <attribute name="Implementation-Version" value="1.0" />
+            </manifest>
+        </jar>
+        
+        <echo>JAR created: ${dist.dir}/geogebra-mvp.jar</echo>
+    </target>
+    
+    <!-- Run the demo -->
+    <target name="run" depends="compile">
+        <echo>Starting KENOSIS Glyph Demo...</echo>
+        
+        <java classname="org.thundergrace.glyph.KenosisDemo"
+               fork="true"
+               failonerror="true">
+            <jvmarg value="-Djava.awt.headless=false" />
+            <jvmarg value="-Xmx512m" />
+            <classpath refid="run.classpath" />
+        </java>
+    </target>
+    
+    <!-- Run with explicit GeoGebra path -->
+    <target name="run-with-path" depends="compile">
+        <input message="Enter GeoGebra installation directory:"
+               addproperty="input.geogebra.dir" />
+        
+        <property name="run.geogebra.jar" value="${input.geogebra.dir}/geogebra.jar" />
+        
+        <java classname="org.thundergrace.glyph.KenosisDemo"
+               fork="true"
+               failonerror="true">
+            <jvmarg value="-Djava.awt.headless=false" />
+            <jvmarg value="-Xmx512m" />
+            <classpath>
+                <pathelement location="${classes.dir}" />
+                <pathelement location="${run.geogebra.jar}" />
+                <fileset dir="${input.geogebra.dir}/lib" erroronmissingdir="false">
+                    <include name="**/*.jar" />
+                </fileset>
+            </classpath>
+        </java>
+    </target>
+    
+    <!-- Clean build artifacts -->
+    <target name="clean">
+        <delete dir="${build.dir}" />
+        <echo>Build directory cleaned.</echo>
+    </target>
+    
+    <!-- Full rebuild -->
+    <target name="rebuild" depends="clean, jar">
+        <echo>Rebuild complete.</echo>
+    </target>
+    
+</project>

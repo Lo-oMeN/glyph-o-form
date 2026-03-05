@@ -1,0 +1,123 @@
+
+╔══════════════════════════════════════════════════════════════════╗
+║           THUNDERING GRACE ENGINE - KENOSIS GLYPH                ║
+║                    ￿·—— (Self-Emptying)                          ║
+╚══════════════════════════════════════════════════════════════════╝
+
+7-SEGMENT LATTICE MAPPING:
+═══════════════════════════════════════════════════════════════════
+
+                         a = CURVE (￿)
+                            ╭─────╮
+                          ╱         ╲
+    f = ABSENCE         ╱    TOP      ╲      b = POINT (·)
+       (∅)            ╱      ARC        ○        GOLD
+                    ╱    (decompressor)   (origin of assertion)
+                   ╲                         /
+                    ╲                       /
+                     ╲                     /
+    g = LINE (—)  ═══════════════════════
+       BLUE         MIDDLE (bridge)
+                   ╱                     ╲
+                  ╱                       ╲
+    e = ABSENCE  ╱                         ╲   c = ABSENCE (∅)
+       (∅)      ╱                           ╲      VOID
+               ╱                             ╲
+              ╱                               ╲
+    d = LINE (—)═══════════════════════════════
+       BLUE              BOTTOM (foundation)
+
+═══════════════════════════════════════════════════════════════════
+
+ATOMIC COMPOSITION:
+───────────────────────────────────────────────────────────────────
+  Segment  Atom      Symbol   Function                    Color
+  ───────────────────────────────────────────────────────────────
+  a        CURVE     ￿       Dimensional decompressor    Red #DC6464
+  b        POINT     ·       Origin of assertion         Gold #FFC832
+  g        LINE      —       Connection/bridge           Blue #6496DC
+  d        LINE      —       Foundation                  Blue #6496DC
+  c,e,f    ABSENCE   ∅       Generative void             (invisible)
+
+═══════════════════════════════════════════════════════════════════
+
+VECTOR REPRESENTATION (28-dim):
+───────────────────────────────────────────────────────────────────
+  [a_point, a_line, a_curve, a_absence,   ← Segment a
+   b_point, b_line, b_curve, b_absence,   ← Segment b
+   c_point, c_line, c_curve, c_absence,   ← Segment c
+   d_point, d_line, d_curve, d_absence,   ← Segment d
+   e_point, e_line, e_curve, e_absence,   ← Segment e
+   f_point, f_line, f_curve, f_absence,   ← Segment f
+   g_point, g_line, g_curve, g_absence]   ← Segment g
+
+  KENOSIS = [0,0,1,0,  1,0,0,0,  0,0,0,1,  0,1,0,0,
+             0,0,0,1,  0,0,0,1,  0,1,0,0]
+              ↑ ↑ ↑ ↑  ↑ ↑ ↑ ↑
+              ￿ · ∅ —
+
+═══════════════════════════════════════════════════════════════════
+
+RSTL STATE TRANSITIONS:
+───────────────────────────────────────────────────────────────────
+
+  ┌─────────┐    drag start     ┌─────────────┐    lock achieved
+  │  NULL   │ ────────────────► │  POTENTIAL  │ ────────────────►
+  │   ∅     │                   │     △       │
+  │ (death) │ ◄──────────────── │ (becoming)  │
+  └─────────┘      release      └─────────────┘
+                                      │
+                                      ▼
+                               ┌─────────────┐
+                               │ ACTUALIZED  │
+                               │     ■       │
+                               │   (glory)   │
+                               └─────────────┘
+
+═══════════════════════════════════════════════════════════════════
+
+FREE-ENERGY DESCENT:
+───────────────────────────────────────────────────────────────────
+
+  ℱ(u) = ℱ_struct(u) + λ·ℱ_constraint(u)
+  
+  u = −K ∇ℱ(u)
+  
+  where:
+    ℱ_struct = uᵀQu              (structural coherence)
+    ℱ_constraint = −|u_emergent|² + α·absence_bonus  (kenotic)
+    K = 0.1                      (descent rate)
+    λ = 1.618                    (golden ratio weight)
+
+═══════════════════════════════════════════════════════════════════
+
+DRAGGABLE ELEMENTS:
+───────────────────────────────────────────────────────────────────
+
+  Element          Type              Drag Behavior
+  ─────────────────────────────────────────────────────────────────
+  Top curve        GeoConic arc      Drag 3 control points
+  Upper point      GeoPoint          Move freely
+  Middle line      GeoLine segment   Drag 2 endpoints
+  Bottom line      GeoLine segment   Drag 2 endpoints
+
+  All elements cascade updates through GeoGebra dependency graph
+  at 60 FPS (TGE Layer 0 guarantee)
+
+═══════════════════════════════════════════════════════════════════
+
+TGE LAYERS ACTIVE:
+───────────────────────────────────────────────────────────────────
+
+  Layer 7  ┌─────────────────┐  GCE Visual Interface (Alphabet Helix)
+  Layer 6  ├─────────────────┤  Krishna Bhakti (surrender term)
+  Layer 5  ├─────────────────┤  Free-Energy Control (u = −K∇ℱ)
+  Layer 4  ├─────────────────┤  Phi-Crystal (simplified)
+  Layer 3  ├─────────────────┤  Quadraligne Motion (drag phases)
+  Layer 2  ├─────────────────┤  RSTL Trinary (∅, △, ■)
+  Layer 1  ├─────────────────┤  Dimi-Phor (glyph primitives)
+  Layer 0  └─────────────────┘  Geometric VM (GeoGebra/JVM)
+
+═══════════════════════════════════════════════════════════════════
+
+"The atom speaks. The lattice breathes. The crystal is executable."
