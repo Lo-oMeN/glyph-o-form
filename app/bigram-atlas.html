@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bigram Atlas - Proto-Glyphoform Composer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        .main-container {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .panel {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .panel h2 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #fff;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+        
+        /* Bigram Selector */
+        .bigram-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .bigram-cell {
+            aspect-ratio: 1;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.2s;
+        }
+        
+        .bigram-cell:hover {
+            background: #3a3a3a;
+            border-color: #666;
+        }
+        
+        .bigram-cell.selected {
+            background: #4a4a4a;
+            border-color: #888;
+            box-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+        
+        /* Canvas Area */
+        .canvas-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #glyphCanvas {
+            background: #0f0f0f;
+            border: 2px solid #444;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .word-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.5em;
+            background: #2a2a2a;
+            border: 2px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+        }
+        
+        .word-input:focus {
+            outline: none;
+            border-color: #666;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #e0e0e0;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: #3a3a3a;
+            border-color: #666;
+        }
+        
+        .btn.primary {
+            background: #4a4a4a;
+            border-color: #666;
+        }
+        
+        /* Info Panel */
+        .info-display {
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .info-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #2a2a2a;
+            border-radius: 4px;
+        }
+        
+        .info-section h3 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+        
+        .mapping-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #444;
+        }
+        
+        .mapping-row:last-child {
+            border-bottom: none;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .stat-box {
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 0.8em;
+            color: #888;
+        }
+        
+        /* Reference Table */
+        .ref-table {
+            font-size: 0.75em;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .ref-row {
+            display: grid;
+            grid-template-columns: 40px 60px 60px 1fr;
+            gap: 5px;
+            padding: 5px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .ref-row:hover {
+            background: #2a2a2a;
+        }
+        
+        .atom-display {
+            font-size: 1.2em;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Bigram Atlas</h1>
+        <p>676 Two-Letter Mappings to 7-Segment Proto-Glyphoforms</p>
+    </div>
+    
+    <div class="main-container">
+        <!-- Left Panel: Bigram Selector -->
+        <div class="panel">
+            <h2>Bigram Grid</h2>
+            <div class="bigram-grid" id="bigramGrid"></div>
+            <div style="margin-top: 15px; font-size: 0.8em; color: #666;">
+                Click to preview bigram glyph
+            </div>
+        </div>
+        
+        <!-- Center Panel: Canvas -->
+        <div class="panel canvas-container">
+            <h2>Composite Visualizer</h2>
+            <input type="text" class="word-input" id="wordInput" placeholder="TYPE WORD..." maxlength="20">
+            <canvas id="glyphCanvas" width="400" height="400"></canvas>
+            <div class="controls">
+                <button class="btn primary" onclick="renderWord()">RENDER</button>
+                <button class="btn" onclick="clearCanvas()">CLEAR</button>
+                <button class="btn" onclick="showSyllables()">SYLLABLES</button>
+                <button class="btn" onclick="exportGlyph()">EXPORT SVG</button>
+            </div>
+        </div>
+        
+        <!-- Right Panel: Info -->
+        <div class="panel">
+            <h2>Encoding Details</h2>
+            <div class="info-display" id="infoDisplay">
+                <div class="info-section">
+                    <h3>Current Word</h3>
+                    <div id="currentWord">—</div>
+                </div>
+                <div class="info-section">
+                    <h3>Letter Mappings</h3>
+                    <div id="letterMappings">Enter a word to see mappings</div>
+                </div>
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-value" id="rawBits">—</div>
+                        <div class="stat-label">Raw Bits</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="compBits">—</div>
+                        <div class="stat-label">Compressed</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="ratio">—</div>
+                        <div class="stat-label">Ratio</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="segments">—</div>
+                        <div class="stat-label">Segments</div>
+                    </div>
+                </div>
+            </div>
+            
+            <h2 style="margin-top: 20px;">Letter Reference</h2>
+            <div class="ref-table" id="refTable"></div>
+        </div>
+    </div>
+
+    <script>
+        // Letter to Segment + Atom Mapping
+        const LETTER_MAP = {
+            'A': { seg: 'a', atom: 'curve', symbol: '￿' },
+            'B': { seg: 'f', atom: 'line', symbol: '—' },
+            'C': { seg: 'g', atom: 'point', symbol: '·' },
+            'D': { seg: 'e', atom: 'curve', symbol: '￿' },
+            'E': { seg: 'd', atom: 'line', symbol: '—' },
+            'F': { seg: 'f', atom: 'line', symbol: '—' },
+            'G': { seg: 'a', atom: 'curve', symbol: '￿' },
+            'H': { seg: 'd', atom: 'curve', symbol: '￿' },
+            'I': { seg: 'b', atom: 'point', symbol: '·' },
+            'J': { seg: 'a', atom: 'curve', symbol: '￿' },
+            'K': { seg: 'a', atom: 'line', symbol: '—' },
+            'L': { seg: 'e', atom: 'line', symbol: '—' },
+            'M': { seg: 'f', atom: 'curve', symbol: '￿' },
+            'N': { seg: 'c', atom: 'line', symbol: '—' },
+            'O': { seg: 'e', atom: 'curve', symbol: '￿' },
+            'P': { seg: 'f', atom: 'point', symbol: '·' },
+            'Q': { seg: 'g', atom: 'curve', symbol: '￿' },
+            'R': { seg: 'g', atom: 'line', symbol: '—' },
+            'S': { seg: 'a', atom: 'point', symbol: '·' },
+            'T': { seg: 'f', atom: 'line', symbol: '—' },
+            'U': { seg: 'c', atom: 'curve', symbol: '￿' },
+            'V': { seg: 'f', atom: 'curve', symbol: '￿' },
+            'W': { seg: 'f', atom: 'line', symbol: '—' },
+            'X': { seg: 'g', atom: 'line', symbol: '—' },
+            'Y': { seg: 'g', atom: 'curve', symbol: '￿' },
+            'Z': { seg: 'e', atom: 'point', symbol: '·' }
+        };
+        
+        // Segment positions (7-segment display layout)
+        const SEGMENTS = {
+            'a': { x: 100, y: 50, w: 200, h: 20, type: 'horizontal' },    // top
+            'b': { x: 310, y: 70, w: 20, h: 100, type: 'vertical' },      // upper right
+            'c': { x: 310, y: 230, w: 20, h: 100, type: 'vertical' },     // lower right
+            'd': { x: 100, y: 330, w: 200, h: 20, type: 'horizontal' },   // bottom
+            'e': { x: 70, y: 230, w: 20, h: 100, type: 'vertical' },      // lower left
+            'f': { x: 70, y: 70, w: 20, h: 100, type: 'vertical' },       // upper left
+            'g': { x: 200, y: 180, w: 40, h: 40, type: 'center' }         // middle (modified)
+        };
+        
+        const canvas = document.getElementById('glyphCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Initialize
+        function init() {
+            createBigramGrid();
+            createRefTable();
+            clearCanvas();
+            
+            // Setup input handler
+            document.getElementById('wordInput').addEventListener('input', (e) => {
+                const word = e.target.value.toUpperCase().replace(/[^A-Z]/g, '');
+                if (word.length > 0) {
+                    renderWord(word);
+                } else {
+                    clearCanvas();
+                }
+            });
+        }
+        
+        // Create bigram grid
+        function createBigramGrid() {
+            const grid = document.getElementById('bigramGrid');
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            
+            for (let l1 of letters) {
+                for (let l2 of letters) {
+                    const cell = document.createElement('div');
+                    cell.className = 'bigram-cell';
+                    cell.textContent = l1 + l2;
+                    cell.onclick = () => previewBigram(l1, l2, cell);
+                    grid.appendChild(cell);
+                }
+            }
+        }
+        
+        // Create reference table
+        function createRefTable() {
+            const table = document.getElementById('refTable');
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            
+            for (let letter of letters) {
+                const map = LETTER_MAP[letter];
+                const row = document.createElement('div');
+                row.className = 'ref-row';
+                row.innerHTML = `
+                    <span>${letter}</span>
+                    <span>${map.seg}</span>
+                    <span class="atom-display">${map.symbol}</span>
+                    <span style="color: #888;">${map.atom}</span>
+                `;
+                table.appendChild(row);
+            }
+        }
+        
+        // Preview single bigram
+        function previewBigram(l1, l2, cell) {
+            document.querySelectorAll('.bigram-cell').forEach(c => c.classList.remove('selected'));
+            cell.classList.add('selected');
+            
+            clearCanvas();
+            
+            const m1 = LETTER_MAP[l1];
+            const m2 = LETTER_MAP[l2];
+            
+            // Draw first letter
+            drawSegment(m1.seg, m1.atom, 1.0);
+            
+            // Draw second letter (offset slightly if same segment)
+            if (m1.seg === m2.seg) {
+                drawSegment(m2.seg, m2.atom, 0.7, 5);
+            } else {
+                drawSegment(m2.seg, m2.atom, 1.0);
+            }
+            
+            // Update info
+            updateInfo(`${l1}${l2}`, [
+                { letter: l1, ...m1 },
+                { letter: l2, ...m2 }
+            ]);
+        }
+        
+        // Render full word
+        function renderWord(word = null) {
+            if (!word) {
+                word = document.getElementById('wordInput').value.toUpperCase().replace(/[^A-Z]/g, '');
+            }
+            
+            if (!word) return;
+            
+            clearCanvas();
+            
+            const mappings = [];
+            const segmentUsage = {};
+            
+            // Collect mappings
+            for (let letter of word) {
+                const map = LETTER_MAP[letter];
+                mappings.push({ letter, ...map });
+                
+                if (!segmentUsage[map.seg]) {
+                    segmentUsage[map.seg] = [];
+                }
+                segmentUsage[map.seg].push(map.atom);
+            }
+            
+            // Draw merged segments
+            for (let [seg, atoms] of Object.entries(segmentUsage)) {
+                const mergedAtom = mergeAtoms(atoms);
+                drawSegment(seg, mergedAtom, 1.0);
+            }
+            
+            // Update info
+            updateInfo(word, mappings, Object.keys(segmentUsage).length);
+        }
+        
+        // Merge multiple atoms in same segment
+        function mergeAtoms(atoms) {
+            if (atoms.length === 1) return atoms[0];
+            
+            // Priority: curve > line > point
+            if (atoms.includes('curve')) return 'curve';
+            if (atoms.includes('line')) return 'line';
+            return 'point';
+        }
+        
+        // Draw a single segment
+        function drawSegment(seg, atom, alpha, offset = 0) {
+            const pos = SEGMENTS[seg];
+            if (!pos) return;
+            
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            
+            // Color based on atom type
+            let color = '#fff';
+            let lineWidth = 8;
+            
+            if (atom === 'curve') {
+                color = '#4ecdc4';
+                lineWidth = 10;
+            } else if (atom === 'line') {
+                color = '#ff6b6b';
+                lineWidth = 6;
+            } else if (atom === 'point') {
+                color = '#ffe66d';
+                lineWidth = 12;
+            }
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // Apply offset for overlapping same-segment atoms
+            const ox = offset;
+            const oy = offset;
+            
+            ctx.beginPath();
+            
+            if (pos.type === 'horizontal') {
+                ctx.moveTo(pos.x + ox, pos.y + oy);
+                ctx.lineTo(pos.x + pos.w + ox, pos.y + oy);
+            } else if (pos.type === 'vertical') {
+                ctx.moveTo(pos.x + ox, pos.y + oy);
+                ctx.lineTo(pos.x + ox, pos.y + pos.h + oy);
+            } else if (pos.type === 'center') {
+                // Draw center point or small circle
+                ctx.arc(pos.x + pos.w/2 + ox, pos.y + pos.h/2 + oy, 15, 0, Math.PI * 2);
+            }
+            
+            ctx.stroke();
+            
+            // Add glow effect
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 15;
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+        
+        // Clear canvas
+        function clearCanvas() {
+            ctx.fillStyle = '#0f0f0f';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < canvas.width; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(canvas.width, i);
+                ctx.stroke();
+            }
+            
+            // Draw segment outlines (faint)
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            for (let [name, pos] of Object.entries(SEGMENTS)) {
+                ctx.beginPath();
+                if (pos.type === 'horizontal') {
+                    ctx.moveTo(pos.x, pos.y);
+                    ctx.lineTo(pos.x + pos.w, pos.y);
+                } else if (pos.type === 'vertical') {
+                    ctx.moveTo(pos.x, pos.y);
+                    ctx.lineTo(pos.x, pos.y + pos.h);
+                } else if (pos.type === 'center') {
+                    ctx.arc(pos.x + pos.w/2, pos.y + pos.h/2, 20, 0, Math.PI * 2);
+                }
+                ctx.stroke();
+            }
+            
+            // Reset info
+            document.getElementById('currentWord').textContent = '—';
+            document.getElementById('letterMappings').innerHTML = 'Enter a word to see mappings';
+            document.getElementById('rawBits').textContent = '—';
+            document.getElementById('compBits').textContent = '—';
+            document.getElementById('ratio').textContent = '—';
+            document.getElementById('segments').textContent = '—';
+        }
+        
+        // Update info panel
+        function updateInfo(word, mappings, numSegments = null) {
+            document.getElementById('currentWord').textContent = word;
+            
+            // Build mappings display
+            let html = '';
+            for (let m of mappings) {
+                html += `
+                    <div class="mapping-row">
+                        <span>${m.letter}</span>
+                        <span>→</span>
+                        <span>${m.seg}</span>
+                        <span class="atom-display">${m.symbol}</span>
+                    </div>
+                `;
+            }
+            document.getElementById('letterMappings').innerHTML = html;
+            
+            // Calculate stats
+            const rawBits = word.length * 8;
+            const segments = numSegments || new Set(mappings.map(m => m.seg)).size;
+            const compBits = segments * 2; // 2 bits per segment (atom type)
+            const ratio = (rawBits / compBits).toFixed(1);
+            
+            document.getElementById('rawBits').textContent = rawBits;
+            document.getElementById('compBits').textContent = compBits;
+            document.getElementById('ratio').textContent = ratio + ':1';
+            document.getElementById('segments').textContent = segments;
+        }
+        
+        // Show syllable breakdown
+        function showSyllables() {
+            const word = document.getElementById('wordInput').value.toUpperCase().replace(/[^A-Z]/g, '');
+            if (!word) return;
+            
+            // Simple syllable detection (vowel-based)
+            const vowels = 'AEIOUY';
+            let syllables = [];
+            let current = '';
+            
+            for (let letter of word) {
+                current += letter;
+                if (vowels.includes(letter) && current.length >= 2) {
+                    syllables.push(current);
+                    current = '';
+                }
+            }
+            if (current) syllables.push(current);
+            
+            alert(`Syllable breakdown: ${syllables.join(' - ') || word}`);
+        }
+        
+        // Export as SVG
+        function exportGlyph() {
+            const word = document.getElementById('wordInput').value.toUpperCase().replace(/[^A-Z]/g, '');
+            if (!word) return;
+            
+            let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">\n`;
+            svg += `  <rect width="400" height="400" fill="#0a0a0a"/>\n`;
+            
+            // Add segment paths
+            const segmentUsage = {};
+            for (let letter of word) {
+                const map = LETTER_MAP[letter];
+                if (!segmentUsage[map.seg]) segmentUsage[map.seg] = [];
+                segmentUsage[map.seg].push(map.atom);
+            }
+            
+            for (let [seg, atoms] of Object.entries(segmentUsage)) {
+                const pos = SEGMENTS[seg];
+                const merged = mergeAtoms(atoms);
+                
+                let color = '#fff';
+                if (merged === 'curve') color = '#4ecdc4';
+                else if (merged === 'line') color = '#ff6b6b';
+                else if (merged === 'point') color = '#ffe66d';
+                
+                svg += `  <!-- ${seg}: ${merged} -->\n`;
+                
+                if (pos.type === 'horizontal') {
+                    svg += `  <line x1="${pos.x}" y1="${pos.y}" x2="${pos.x + pos.w}" y2="${pos.y}" stroke="${color}" stroke-width="8" stroke-linecap="round"/>\n`;
+                } else if (pos.type === 'vertical') {
+                    svg += `  <line x1="${pos.x}" y1="${pos.y}" x2="${pos.x}" y2="${pos.y + pos.h}" stroke="${color}" stroke-width="8" stroke-linecap="round"/>\n`;
+                } else if (pos.type === 'center') {
+                    svg += `  <circle cx="${pos.x + pos.w/2}" cy="${pos.y + pos.h/2}" r="15" fill="${color}"/>\n`;
+                }
+            }
+            
+            svg += `  <text x="200" y="380" text-anchor="middle" fill="#666" font-family="monospace" font-size="14">${word}</text>\n`;
+            svg += `</svg>`;
+            
+            // Download
+            const blob = new Blob([svg], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `glyph-${word}.svg`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
